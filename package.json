@@ -1,0 +1,111 @@
+{
+  "name": "mr-khan-whatsapp-server",
+  "version": "2.0.0",
+  "description": "MR KHAN - Lightweight Non-Stop WhatsApp Bulk Messaging Server (365 Days Uptime)",
+  "main": "vip whatsapp .js",
+  "author": "MR KHAN",
+  "license": "MIT",
+  "private": true,
+
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+
+  "scripts": {
+    "start": "node --expose-gc --max-old-space-size=512 \"vip whatsapp .js\"",
+    "start:prod": "NODE_ENV=production node --expose-gc --max-old-space-size=512 \"vip whatsapp .js\"",
+    "start:light": "node --expose-gc --max-old-space-size=256 \"vip whatsapp .js\"",
+    "start:pm2": "pm2 start \"vip whatsapp .js\" --name mr-khan --node-args=\"--expose-gc --max-old-space-size=512\" --restart-delay=3000 --max-restarts=9999",
+    "dev": "node --expose-gc --max-old-space-size=512 --trace-warnings \"vip whatsapp .js\"",
+    "clean": "node -e \"const fs=require('fs');['uploads','data/media'].forEach(d=>{if(fs.existsSync(d))fs.rmSync(d,{recursive:true,force:true})});console.log('✅ Cleaned temp files')\"",
+    "clean:sessions": "node -e \"const fs=require('fs');if(fs.existsSync('sessions'))fs.rmSync('sessions',{recursive:true,force:true});console.log('✅ Cleaned sessions')\"",
+    "backup": "node -e \"const fs=require('fs');const d=new Date().toISOString().replace(/[:.]/g,'-');['data','sessions'].forEach(src=>{if(fs.existsSync(src))fs.cpSync(src,'backup_'+src+'_'+d,{recursive:true})});console.log('✅ Backup done')\"",
+    "health": "node -e \"require('http').get('http://localhost:20582/api/full-stats',r=>{let d='';r.on('data',c=>d+=c);r.on('end',()=>console.log(JSON.parse(d)))}).on('error',e=>console.log('❌',e.message))\"",
+    "logs:pm2": "pm2 logs mr-khan --lines 100",
+    "restart": "pm2 restart mr-khan",
+    "stop": "pm2 stop mr-khan",
+    "monitor": "pm2 monit"
+  },
+
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.16",
+    "express": "^4.21.2",
+    "pino": "^9.5.0",
+    "multer": "^1.4.5-lts.1",
+    "crypto": "^1.0.1",
+    "qrcode-terminal": "^0.12.0",
+    "node-cache": "^5.1.2"
+  },
+
+  "optionalDependencies": {
+    "pm2": "^5.4.3"
+  },
+
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  },
+
+  "keywords": [
+    "whatsapp",
+    "baileys",
+    "bulk-messaging",
+    "whatsapp-bot",
+    "mr-khan",
+    "non-stop",
+    "auto-reconnect",
+    "mention",
+    "group-sender"
+  ],
+
+  "config": {
+    "port": 20582,
+    "max-heap-mb": 512,
+    "gc-interval-min": 1,
+    "memory-cleaner-sec": 60
+  },
+
+  "nodemonConfig": {
+    "ignore": [
+      "sessions/**",
+      "data/**",
+      "uploads/**",
+      "backup_*/**",
+      "*.log"
+    ],
+    "delay": 1000,
+    "verbose": false
+  },
+
+  "pm2": {
+    "apps": [
+      {
+        "name": "mr-khan",
+        "script": "vip whatsapp .js",
+        "node_args": "--expose-gc --max-old-space-size=512",
+        "instances": 1,
+        "exec_mode": "fork",
+        "autorestart": true,
+        "restart_delay": 3000,
+        "max_restarts": 9999,
+        "max_memory_restart": "450M",
+        "watch": false,
+        "env": {
+          "NODE_ENV": "production",
+          "P2": "1"
+        },
+        "error_file": "logs/mr-khan-error.log",
+        "out_file": "logs/mr-khan-out.log",
+        "merge_logs": true,
+        "time": true
+      }
+    ]
+  },
+
+  "directories": {
+    "data": "./data",
+    "sessions": "./sessions",
+    "uploads": "./uploads",
+    "logs": "./logs"
+  }
+}
